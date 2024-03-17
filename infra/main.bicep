@@ -251,8 +251,8 @@ module keyVaultSecrets 'core/security/keyvault-secrets.bicep' = {
         value: useVision ? 'true' : 'false'
       }
       {
-        name:'MongoUrl'
-        key:'mongodb+srv://jegan:08101989@aicluster.1kznuus.mongodb.net/?retryWrites=true&w=majority&appName=aicluster'
+        name: 'MongoUrl'
+        value: 'mongodb+srv://jegan:08101989@aicluster.1kznuus.mongodb.net/?retryWrites=true&w=majority&appName=aicluster'
       }
     ],
     useAOAI ? [
