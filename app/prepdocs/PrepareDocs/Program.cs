@@ -14,8 +14,7 @@ s_rootCommand.SetHandler(
         else
         {
             var searchIndexName = options.SearchIndexName ?? throw new ArgumentNullException(nameof(options.SearchIndexName));
-            var embedService = await GetAzureSearchEmbedService(options);
-            await embedService.EnsureSearchIndexAsync(options.SearchIndexName);
+            var embedService = await GetMongoDbEmbedService(options);
 
             Matcher matcher = new();
             // From bash, the single quotes surrounding the path (to avoid expansion of the wildcard), are included in the argument value.

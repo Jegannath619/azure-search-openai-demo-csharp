@@ -21,7 +21,7 @@ public sealed partial class MongoDbEmbedService(
 	BlobContainerClient corpusContainerClient,
 	IComputerVisionService? computerVisionService = null,
 	bool includeImageEmbeddingsField = false,
-	ILogger<AzureSearchEmbedService>? logger = null) : IEmbedService
+	ILogger<MongoDbEmbedService>? logger = null) : IEmbedService
 {
 	[GeneratedRegex("[^0-9a-zA-Z_-]")]
 	private static partial Regex MatchInSetRegex();

@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using MongoDB.Driver;
+
 internal static partial class Program
 {
     private static BlobContainerClient? s_corpusContainerClient;
@@ -8,6 +10,8 @@ internal static partial class Program
     private static SearchIndexClient? s_searchIndexClient;
     private static SearchClient? s_searchClient;
     private static OpenAIClient? s_openAIClient;
+
+    private static MongoClient? s_mongoClient;
 
     private static readonly SemaphoreSlim s_corpusContainerLock = new(1);
     private static readonly SemaphoreSlim s_containerLock = new(1);
@@ -41,7 +45,28 @@ internal static partial class Program
                 includeImageEmbeddingsField: computerVisionService != null,
                 logger: null);
         });
+ private static Task<MongoDbEmbedService> GetMongoDbEmbedService(AppOptions options) =>
+        GetLazyClientAsync<MongoDbEmbedService>(options, s_embeddingLock, async o =>
+        {
 
+            var mongoClient = await GetMongoClientAsync(o);
+            var documentClient = await GetFormRecognizerClientAsync(o);
+            var blobContainerClient = await GetCorpusBlobContainerClientAsync(o);
+            var openAIClient = await GetOpenAIClientAsync(o);
+            var embeddingModelName = o.EmbeddingModelName ?? throw new ArgumentNullException(nameof(o.EmbeddingModelName));
+            var searchIndexName = o.SearchIndexName ?? throw new ArgumentNullException(nameof(o.SearchIndexName));
+            var computerVisionService = await GetComputerVisionServiceAsync(o);
+
+            return new MongoDbEmbedService(
+                openAIClient: openAIClient,
+                embeddingModelName: embeddingModelName,
+                mongoClient: mongoClient,
+                documentAnalysisClient: documentClient,
+                corpusContainerClient: blobContainerClient,
+                computerVisionService: computerVisionService,
+                includeImageEmbeddingsField: computerVisionService != null,
+                logger: null);
+        });
     private static Task<BlobContainerClient> GetCorpusBlobContainerClientAsync(AppOptions options) =>
         GetLazyClientAsync<BlobContainerClient>(options, s_corpusContainerLock, static async o =>
         {
@@ -146,6 +171,25 @@ internal static partial class Program
 
             return s_searchClient;
         });
+
+        private static Task<MongoClient> GetMongoClientAsync(AppOptions options) =>
+        GetLazyClientAsync<MongoClient>(options, s_searchLock, async o =>
+        {
+            if (m_mongoClient is null)
+            {
+                var endpoint = o.SearchServiceEndpoint;
+                ArgumentNullException.ThrowIfNullOrEmpty(endpoint);
+                var mongoConfig = Environment.GetEnvironmentVariable("MONGO_CONFIG") ?? throw new ArgumentNullException("MONGO_CONFIG is null");
+                var mongoSettings = MongoClientSettings.FromUrl(new MongoUrl(mongoConfig));
+                mongoSettings.AllowInsecureTls = true;
+                mongoSettings.WriteConcern = WriteConcern.WMajority;
+                m_mongoClient = new MongoClient(mongoSettings);
+            }
+
+            await Task.CompletedTask;
+
+            return m_mongoClient;
+        });    
 
     private static Task<IComputerVisionService?> GetComputerVisionServiceAsync(AppOptions options) =>
         GetLazyClientAsync<IComputerVisionService?>(options, s_openAILock, async o =>
