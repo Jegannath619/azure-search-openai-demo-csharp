@@ -24,7 +24,4 @@ public interface IEmbedService
         string imageName,
         CancellationToken ct = default);
 
-    Task CreateSearchIndexAsync(string searchIndexName, CancellationToken ct = default);
-
-    Task EnsureSearchIndexAsync(string searchIndexName, CancellationToken ct = default);
 }

@@ -20,6 +20,7 @@
     <PackageReference Include="Microsoft.Azure.Functions.Worker" />
     <PackageReference Include="Microsoft.Extensions.Azure" />
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" />
+    <PackageReference Include="MongoDB.Driver" />
     <PackageReference Include="Pinecone.NET" />
   </ItemGroup>
   <ItemGroup>
